@@ -53,69 +53,63 @@ Evolution Go is one of the messaging engines maintained by Evolution Foundation.
 
 ## Quick Start
 
-### Docker (recommended)
+The easiest way to run Evolution Go is with the prebuilt Docker image published by this repository. You do **not** need Go, Git, or a local image build for a standard installation.
+
+- **Container image:** `ghcr.io/drfrag/evolution-go`
+- **Recommended pinned version:** `0.7.3`
+- **Container port:** `8080`
+
+See the complete [Docker installation guide](./docs/INSTALLATION.md) for the Compose file, PostgreSQL setup, updates, backups, and troubleshooting.
+
+### Docker Compose (recommended)
+
+1. Install Docker Engine and the Docker Compose plugin.
+2. Create a deployment folder and add the `compose.yaml` and `.env` files from the [installation guide](./docs/INSTALLATION.md).
+3. Generate a strong API key and start the services:
 
 ```bash
-git clone https://github.com/evolution-foundation/evolution-go.git
-cd evolution-go
-make docker-build
-make docker-run
+openssl rand -hex 32
+docker compose up -d
+docker compose logs -f evolution-go
 ```
 
-### Local development
+Open the API at `http://localhost:8080` and Swagger at `http://localhost:8080/swagger/index.html`.
+
+> **Important:** Keep your `.env` file private. Do not commit API keys or database passwords. The example Compose deployment uses PostgreSQL and persistent Docker volumes.
+
+### Build from source (developers)
 
 ```bash
-git clone https://github.com/evolution-foundation/evolution-go.git
+git clone https://github.com/Drfrag/evolution-go.git
 cd evolution-go
-
-# Setup, configure and run
-make setup
 cp .env.example .env
+# Edit .env, then:
+make deps
 make dev
 ```
 
-> Run `make help` to see all available commands. See [COMMANDS.md](./COMMANDS.md) for detailed workflows.
+Run `make help` to see the available development commands.
 
 ---
 
 ## Configuration
 
-Create a `.env` file:
+For a complete, working Docker Compose configuration, including PostgreSQL connection strings and required environment variables, see the [Docker installation guide](./docs/INSTALLATION.md).
+
+For local development, copy `.env.example` to `.env` and set at least:
 
 ```env
-# Server
 SERVER_PORT=8080
 CLIENT_NAME=evolution
-
-# Security
-GLOBAL_API_KEY=your-secure-api-key-here
-
-# Database
-POSTGRES_AUTH_DB=postgresql://postgres:password@localhost:5432/evogo_auth?sslmode=disable
-POSTGRES_USERS_DB=postgresql://postgres:password@localhost:5432/evogo_users?sslmode=disable
+GLOBAL_API_KEY=replace-with-a-long-random-secret
+POSTGRES_AUTH_DB=postgresql://postgres:change-me@localhost:5432/evogo_auth?sslmode=disable
+POSTGRES_USERS_DB=postgresql://postgres:change-me@localhost:5432/evogo_users?sslmode=disable
 DATABASE_SAVE_MESSAGES=false
-
-# Logging
-WADEBUG=DEBUG
-LOGTYPE=console
-
-# Optional
-# AMQP_URL=amqp://guest:guest@localhost:5672/
-# NATS_URL=nats://localhost:4222
-# WEBHOOK_URL=https://your-webhook-url.com/webhook
-# MINIO_ENABLED=true
-# MINIO_ENDPOINT=localhost:9000
-# MINIO_ACCESS_KEY=minioadmin
-# MINIO_SECRET_KEY=minioadmin
+DEBUG_ENABLED=INFO
+LOG_TYPE=console
 ```
 
-| Variable | Description | Default |
-|---|---|---|
-| `SERVER_PORT` | Server port | `8080` |
-| `CLIENT_NAME` | Client identifier | `evolution` |
-| `GLOBAL_API_KEY` | API authentication key | **Required** |
-| `DATABASE_SAVE_MESSAGES` | Enable message storage | `false` |
-| `WADEBUG` | WhatsApp debug level | `INFO` |
+The PostgreSQL account must be able to create databases if they do not already exist. Evolution Go creates the configured databases on startup and runs its application migrations automatically.
 
 ---
 
